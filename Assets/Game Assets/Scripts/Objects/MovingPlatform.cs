@@ -19,6 +19,8 @@ public class MovingPlatform : MonoBehaviour {
 
     [Header("Movement Config")]
     [SerializeField]
+    private BehaviorMode _behavior;
+    [SerializeField]
     private PathMode _pathMode;
     [SerializeField]
     private float _moveSpeed = 5.0f;
@@ -35,12 +37,21 @@ public class MovingPlatform : MonoBehaviour {
     private Vector3 _target;
     private int _currentNode;
     private bool _reverse;
+    private bool _doPathLoop;
+    private bool _canMove;
     #endregion
 
     [System.Serializable]
     public enum PathMode {
         EndToEnd,
         Loop
+    }
+
+    [System.Serializable]
+    public enum BehaviorMode {
+        Autonomous,
+        AdvanceOnEvent,
+        AdvancedOnCondition
     }
 
     //Debugging Gizmos
@@ -93,6 +104,25 @@ public class MovingPlatform : MonoBehaviour {
         _platformBody = _platformObject.GetComponent<Rigidbody2D>();
         _currentNode = 0;
 
+        //Set up conditions for behavior
+        switch (_behavior) {
+            case BehaviorMode.Autonomous:
+                _doPathLoop = true;
+                _canMove = true;
+                break;
+
+            case BehaviorMode.AdvanceOnEvent:
+                _doPathLoop = false;
+                _canMove = true;
+                break;
+
+            case BehaviorMode.AdvancedOnCondition:
+                _doPathLoop = true;
+                _canMove = false;
+                break;
+                
+        }
+
         //Enforce Kinematic State
         _platformBody.isKinematic = true;
 
@@ -100,57 +130,66 @@ public class MovingPlatform : MonoBehaviour {
         StartCoroutine("PlatformLoop");
 	}
 
+    //Per-Frame Update
+    void Update() {}
+
     //Coroutine
-	private IEnumerator PlatformLoop () {
+    private IEnumerator PlatformLoop () {
         if (_pauseAtNodes) { yield return new WaitForSeconds(_pauseDelay); }
         while (true) {
-            //Check if we're at the target node then choose the next node
-            if (_platformObject.transform.position == (transform.TransformPoint(_pathNodes[_currentNode]))) {
-                switch (_pathMode) {
-                    case PathMode.EndToEnd:
-                        if (_reverse) {
-                            if (_currentNode - 1 < 0) {
-                                _reverse = false;
-                                _currentNode++;
+            if (_doPathLoop) {
+                //Check if we're at the target node then choose the next node
+                if (_platformObject.transform.position == (transform.TransformPoint(_pathNodes[_currentNode]))) {
+                    switch (_pathMode) {
+                        case PathMode.EndToEnd:
+                            if (_reverse) {
+                                if (_currentNode - 1 < 0) {
+                                    _reverse = false;
+                                    _currentNode++;
+                                }
+                                else {
+                                    _currentNode--;
+                                }
                             }
                             else {
-                                _currentNode--;
+                                if (_currentNode + 1 > _pathNodes.Count - 1) {
+                                    _reverse = true;
+                                    _currentNode--;
+                                }
+                                else {
+                                    _currentNode++;
+                                }
                             }
-                        }
-                        else {
+                            break;
+                        case PathMode.Loop:
                             if (_currentNode + 1 > _pathNodes.Count - 1) {
-                                _reverse = true;
-                                _currentNode--;
+                                _currentNode = 0;
                             }
                             else {
                                 _currentNode++;
                             }
-                        }
-                        break;
-                    case PathMode.Loop:
-                        if (_currentNode + 1 > _pathNodes.Count - 1) {
-                            _currentNode = 0;
-                        }
-                        else {
-                            _currentNode++;
-                        }
-                        break;
+                            break;
+                    }
+
+                    //Stop advancing if the behavior mode is event based
+                    if (_behavior == BehaviorMode.AdvanceOnEvent) {
+                        _doPathLoop = false;
+                        yield return null;
+                    }
+
+                    //Pause at the node if needed
+                    if (_pauseAtNodes) { yield return new WaitForSeconds(_pauseDelay); }
                 }
-             
-                //Pause at the node if needed
-                if (_pauseAtNodes) { yield return new WaitForSeconds(_pauseDelay); }
+
+                //Move towards the current node
+                if (_canMove) {
+                    _target = Vector3.MoveTowards(_platformObject.transform.position, transform.TransformPoint(_pathNodes[_currentNode]), _moveSpeed * Time.deltaTime);
+                    _platformBody.MovePosition(_target);
+                }
+
+                yield return null;
             }
-
-            //Move towards the current node
-            _target = Vector3.MoveTowards(_platformObject.transform.position, transform.TransformPoint(_pathNodes[_currentNode]), _moveSpeed * Time.deltaTime);
-            _platformBody.MovePosition(_target);
-
             yield return null;
         }
     }
-
-	//Per-Frame Update
-	void Update () {
-		
-	}
 }
