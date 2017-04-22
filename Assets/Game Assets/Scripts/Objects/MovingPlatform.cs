@@ -87,7 +87,7 @@ public class MovingPlatform : MonoBehaviour {
         }
 
         //Insert the starting Node
-        _pathNodes.Insert(0, transform.position);
+        _pathNodes.Insert(0, transform.InverseTransformPoint(transform.position));
 
         //Initialize Members
         _platformBody = _platformObject.GetComponent<Rigidbody2D>();
