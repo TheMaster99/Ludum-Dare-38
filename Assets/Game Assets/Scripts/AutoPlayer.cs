@@ -25,7 +25,7 @@ public class AutoPlayer : MonoBehaviour {
     private bool _moveDirection; // true = move left, false = move right
     private RaycastHit2D _rayHit;
     private Vector2 _position;
-    private Vector2 _movePos;
+    private Vector2 _move;
     private Vector2 _rayTargetLeft;
     private Vector2 _rayTargetRight;
     private float _rayDistance;
@@ -39,7 +39,7 @@ public class AutoPlayer : MonoBehaviour {
         _rigidBody = this.GetComponent<Rigidbody2D>();
         _boxCollider = this.GetComponent<BoxCollider2D>();
         _position = new Vector2(transform.position.x, transform.position.y);
-        _movePos = new Vector2(_position.x, _position.y);
+        _move = new Vector2(0,0);
 
         // Define raycasting stuff
         _rayTargetLeft = new Vector2(-_boxCollider.size.x / 2, -_boxCollider.size.y / 2);                       // Ray that should point to the bottom left corner, if I'm doing this correctly
@@ -51,7 +51,6 @@ public class AutoPlayer : MonoBehaviour {
 	void Update () {
         _position.x = transform.position.x;
         _position.y = transform.position.y;
-        _movePos.y = _position.y;
 
         if (_moveDirection) { // if moving left
             _rayHit = Physics2D.Raycast(_position, _rayTargetLeft, _rayDistance);
@@ -64,14 +63,14 @@ public class AutoPlayer : MonoBehaviour {
         }
 
         if (_moveDirection) {
-            _movePos.x = _position.x - (_moveSpeed * Time.deltaTime);
+            _move.x = -_moveSpeed * Time.deltaTime;
         }else {
-            _movePos.x = _position.x + (_moveSpeed * Time.deltaTime);
+            _move.x = _moveSpeed * Time.deltaTime;
         }
 
-        print(_movePos);
+        print(_move);
 
-        _rigidBody.MovePosition(_movePos);
+        _rigidBody.AddForce(_move);
 
 	}
 }
