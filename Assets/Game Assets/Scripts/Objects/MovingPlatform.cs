@@ -41,18 +41,11 @@ public class MovingPlatform : MonoBehaviour {
     private bool _canMove;
     #endregion
 
-    [System.Serializable]
-    public enum PathMode {
-        EndToEnd,
-        Loop
+    #region Properties
+    public BehaviorMode PlatformMode {
+        get { return _behavior; }
     }
-
-    [System.Serializable]
-    public enum BehaviorMode {
-        Autonomous,
-        AdvanceOnEvent,
-        AdvancedOnCondition
-    }
+    #endregion
 
     //Debugging Gizmos
     void OnDrawGizmos() {

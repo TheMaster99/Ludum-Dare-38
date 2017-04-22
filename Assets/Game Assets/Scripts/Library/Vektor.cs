@@ -19,3 +19,17 @@ public static class Vektor {
 public interface ISwitchable {
     void OnSwitch(bool switchState);
 }
+
+//Enums for Platforms
+[System.Serializable]
+public enum PathMode {
+    EndToEnd,
+    Loop
+}
+
+[System.Serializable]
+public enum BehaviorMode {
+    Autonomous,
+    AdvanceOnEvent,
+    AdvancedOnCondition
+}
