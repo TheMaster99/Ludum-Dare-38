@@ -1,7 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
+﻿using UnityEngine;
 
 /* <summary>
  * Controls the "player" that paces back and forth.
@@ -47,14 +44,12 @@ public class AutoPlayer : MonoBehaviour {
         _rayDistance = Mathf.Sqrt(Mathf.Pow(_boxCollider.size.x, 2) + Mathf.Pow(_boxCollider.size.y, 2)) + 0.5f; // Distance from position (center of player) to corner of player
 	}                                                                                                           // + a bit more, so it should be enough to find anything to walk on
 
-
     #region Gizmos
     public void OnDrawGizmos() {
         Gizmos.DrawRay(new Ray(transform.FindChild("rayLeft").position, _rayTargetLeft));
         Gizmos.DrawRay(new Ray(transform.FindChild("rayRight").position, _rayTargetRight));
     }
     #endregion
-
 
     //Per-Frame Update
     void FixedUpdate () {
@@ -70,7 +65,6 @@ public class AutoPlayer : MonoBehaviour {
         }
 
         if (!_rayHit) { // No more floor!
-            print("No more floor!");
             _moveDirection = !_moveDirection; // Turn around.
             _rigidBody.velocity = Vector2.zero;
         }
