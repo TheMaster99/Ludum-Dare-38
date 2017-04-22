@@ -19,6 +19,8 @@ public class MovingPlatform : MonoBehaviour {
 
     [Header("Movement Config")]
     [SerializeField]
+    private PathMode _pathMode;
+    [SerializeField]
     private float _moveSpeed = 5.0f;
     [SerializeField]
     private float _pauseDelay = 1.5f;
@@ -27,7 +29,6 @@ public class MovingPlatform : MonoBehaviour {
     #endregion
 
     #region Private Members
-    private GameObject _platformInstance;
     private Rigidbody2D _platformBody;
     private Vector3 _initPosition;
     private Vector3 _velocity;
@@ -35,6 +36,12 @@ public class MovingPlatform : MonoBehaviour {
     private int _currentNode;
     private bool _reverse;
     #endregion
+
+    [System.Serializable]
+    public enum PathMode {
+        EndToEnd,
+        Loop
+    }
 
     //Debugging Gizmos
     void OnDrawGizmos() {
@@ -45,19 +52,22 @@ public class MovingPlatform : MonoBehaviour {
         }
 
         //Draw the Path
-        Gizmos.DrawIcon(transform.TransformPoint(_pathNodes[0]), "StartGizmo"); //Start
+        Gizmos.DrawIcon(transform.position, "StartGizmo"); //Start
 
-        for (int i = 1; i < _pathNodes.Count - 1; i++) {
+        for (int i = 0; i < _pathNodes.Count - 1; i++) {
             Gizmos.DrawIcon(transform.TransformPoint(_pathNodes[i]), "PathGizmo"); //PathNodes
         }
 
         Gizmos.DrawIcon(transform.TransformPoint(_pathNodes[_pathNodes.Count - 1]), "EndGizmo"); //Start
 
         if (_pathNodes.Count > 0) {
+            Gizmos.DrawLine(transform.position, transform.TransformPoint(_pathNodes[0]));
             for (int i = 1; i < _pathNodes.Count; i++) {
                 Gizmos.DrawLine(transform.TransformPoint(_pathNodes[i - 1]), transform.TransformPoint(_pathNodes[i]));
             }
-            Gizmos.DrawLine(transform.TransformPoint(_pathNodes[_pathNodes.Count - 1]), transform.TransformPoint(_pathNodes[_pathNodes.Count -1]));
+            if (_pathMode == PathMode.Loop) {
+                Gizmos.DrawLine(transform.TransformPoint(_pathNodes[_pathNodes.Count - 1]), transform.position);
+            }
         }
         else {
             Gizmos.DrawLine(transform.TransformPoint(_pathNodes[0]), transform.TransformPoint(_pathNodes[_pathNodes.Count - 1]));
@@ -68,7 +78,7 @@ public class MovingPlatform : MonoBehaviour {
     void Start () {
         //Sanity Checking
         if (_platformObject == null) {
-            Debug.LogError("No platform prefab defined, stupid");
+            Debug.LogError("No Platform Defined");
             return;
         }
         if (_pathNodes.Count == 0) {
@@ -76,9 +86,11 @@ public class MovingPlatform : MonoBehaviour {
             return;
         }
 
+        //Insert the starting Node
+        _pathNodes.Insert(0, transform.position);
+
         //Initialize Members
-        _platformInstance = Instantiate(_platformObject, transform.TransformPoint(_pathNodes[0]), Quaternion.identity);
-        _platformBody = _platformInstance.GetComponent<Rigidbody2D>();
+        _platformBody = _platformObject.GetComponent<Rigidbody2D>();
         _currentNode = 0;
 
         //Enforce Kinematic State
@@ -93,31 +105,44 @@ public class MovingPlatform : MonoBehaviour {
         if (_pauseAtNodes) { yield return new WaitForSeconds(_pauseDelay); }
         while (true) {
             //Check if we're at the target node then choose the next node
-            if (_platformInstance.transform.position == (transform.TransformPoint(_pathNodes[_currentNode]))) {
-                if (_reverse) {
-                    if (_currentNode - 1 < 0) {
-                        _reverse = false;
-                        _currentNode++;
-                    }
-                    else {
-                        _currentNode--;
-                    }
+            if (_platformObject.transform.position == (transform.TransformPoint(_pathNodes[_currentNode]))) {
+                switch (_pathMode) {
+                    case PathMode.EndToEnd:
+                        if (_reverse) {
+                            if (_currentNode - 1 < 0) {
+                                _reverse = false;
+                                _currentNode++;
+                            }
+                            else {
+                                _currentNode--;
+                            }
+                        }
+                        else {
+                            if (_currentNode + 1 > _pathNodes.Count - 1) {
+                                _reverse = true;
+                                _currentNode--;
+                            }
+                            else {
+                                _currentNode++;
+                            }
+                        }
+                        break;
+                    case PathMode.Loop:
+                        if (_currentNode + 1 > _pathNodes.Count - 1) {
+                            _currentNode = 0;
+                        }
+                        else {
+                            _currentNode++;
+                        }
+                        break;
                 }
-                else {
-                    if (_currentNode + 1 > _pathNodes.Count - 1) {
-                        _reverse = true;
-                        _currentNode--;
-                    }
-                    else {
-                        _currentNode++;
-                    }
-                }
+             
                 //Pause at the node if needed
                 if (_pauseAtNodes) { yield return new WaitForSeconds(_pauseDelay); }
             }
 
             //Move towards the current node
-            _target = Vector3.MoveTowards(_platformInstance.transform.position, transform.TransformPoint(_pathNodes[_currentNode]), _moveSpeed * Time.deltaTime);
+            _target = Vector3.MoveTowards(_platformObject.transform.position, transform.TransformPoint(_pathNodes[_currentNode]), _moveSpeed * Time.deltaTime);
             _platformBody.MovePosition(_target);
 
             yield return null;
