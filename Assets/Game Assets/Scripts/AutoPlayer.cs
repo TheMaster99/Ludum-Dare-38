@@ -23,7 +23,7 @@ public class AutoPlayer : MonoBehaviour {
     private Rigidbody2D _rigidBody;
     private BoxCollider2D _boxCollider;
     private bool _moveDirection; // true = move left, false = move right
-    private RaycastHit2D _rayHit;
+   // private RaycastHit2D _rayHit;
     private Vector2 _position;
     private Vector2 _move;
     private Vector2 _rayTargetLeft;
@@ -44,22 +44,35 @@ public class AutoPlayer : MonoBehaviour {
         // Define raycasting stuff
         _rayTargetLeft = new Vector2(-_boxCollider.size.x / 2, -_boxCollider.size.y / 2);                       // Ray that should point to the bottom left corner, if I'm doing this correctly
         _rayTargetRight = new Vector2(_boxCollider.size.x / 2, -_boxCollider.size.y / 2);                       // Ray that should point to the bottom right corner, if I'm doing this correctly
-        _rayDistance = Mathf.Sqrt(Mathf.Pow(_boxCollider.size.x, 2) + Mathf.Pow(_boxCollider.size.y, 2)) + .5f; // Distance from position (center of player) to corner of player
+        _rayDistance = Mathf.Sqrt(Mathf.Pow(_boxCollider.size.x, 2) + Mathf.Pow(_boxCollider.size.y, 2)) + 0.5f; // Distance from position (center of player) to corner of player
 	}                                                                                                           // + a bit more, so it should be enough to find anything to walk on
-    
-	//Per-Frame Update
-	void Update () {
+
+
+    #region Gizmos
+    public void OnDrawGizmos() {
+        Gizmos.DrawRay(new Ray(transform.FindChild("rayLeft").position, _rayTargetLeft));
+        Gizmos.DrawRay(new Ray(transform.FindChild("rayRight").position, _rayTargetRight));
+    }
+    #endregion
+
+
+    //Per-Frame Update
+    void FixedUpdate () {
         _position.x = transform.position.x;
         _position.y = transform.position.y;
 
+        bool _rayHit;
+
         if (_moveDirection) { // if moving left
-            _rayHit = Physics2D.Raycast(_position, _rayTargetLeft, _rayDistance);
+            _rayHit = Physics2D.Raycast(transform.FindChild("rayLeft").position, _rayTargetLeft, 0.25f);
         }else { // if moving right
-            _rayHit = Physics2D.Raycast(_position, _rayTargetRight, _rayDistance);
+            _rayHit = Physics2D.Raycast(transform.FindChild("rayRight").position, _rayTargetRight, 0.25f);
         }
 
-        if (_rayHit.collider == null) { // No more floor!
+        if (!_rayHit) { // No more floor!
+            print("No more floor!");
             _moveDirection = !_moveDirection; // Turn around.
+            _rigidBody.velocity = Vector2.zero;
         }
 
         if (_moveDirection) {
@@ -68,9 +81,7 @@ public class AutoPlayer : MonoBehaviour {
             _move.x = _moveSpeed * Time.deltaTime;
         }
 
-        print(_move);
-
         _rigidBody.AddForce(_move);
 
-	}
+    }
 }
