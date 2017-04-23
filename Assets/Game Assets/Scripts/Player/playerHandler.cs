@@ -18,7 +18,6 @@ public class playerHandler : MonoBehaviour {
     private GameObject _activeObject;
     private int _energyLevel;
     private RaycastHit2D _hit;
-    private bool _buttonHold;
     #endregion
 
     // Use this for initialization
@@ -27,8 +26,15 @@ public class playerHandler : MonoBehaviour {
         _energyLevel = _maxEnergy;
         _energyRecharge = false; // Energy does not recharge by default
         _energyRate = 5; // The rate that energy is used/recharged
-        _buttonHold = false; // Assume object has toggle interaction instead of hold interaction
 	}
+
+    public void setEnergy(int _energy) {
+        _energyLevel = _energy;
+    }
+
+    public int getEnergy() {
+        return _energyLevel;
+    }
 	
 	// Update is called once per frame
 	void Update () {
@@ -37,27 +43,14 @@ public class playerHandler : MonoBehaviour {
             _hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
             
             if (_hit.collider != null) {
-                if (_hit.transform.gameObject.tag == "Platform") {
+                if (_hit.transform.gameObject.tag == "Interactable") {
+                    if (_activeObject != null)
+                        _activeObject.BroadcastMessage("OnLoseFocus");
                     _activeObject = _hit.transform.parent.gameObject; // If the player is clicking on a platform, select the platform's parent (the physical platform isn't the logical platform)
-                    print(_activeObject.transform.name);
-                } else if (_hit.transform.gameObject.tag == "Barrier") { // for later
-                    _activeObject = _hit.transform.gameObject; // If player clicks on barrier, select barrier
+                    _activeObject.BroadcastMessage("OnGetFocus");
                     print(_activeObject.transform.name);
                 }
             }
-        }
-		
-        if (_activeObject != null) { // An object is selected
-
-            if (_activeObject.tag == "Platform") {
-                // figure out what kind of platform it is, then do stuff
-            }else if (_activeObject.tag == "Barrier") {
-                if (Input.GetKeyDown(KeyCode.Space)) {
-                    // Make the door open
-                    _energyLevel -= 5; // It costs 5 energy to open a barrier
-                }
-            }
-            
         }
 
 	}
