@@ -7,7 +7,7 @@ using UnityEngine;
 /// -VektorKnight
 /// </summary>
 public class MovingPlatform : InteractableObject {
-
+    
     #region Unity Inspector
     [Header("Platform Config")]
     [SerializeField]
@@ -142,14 +142,20 @@ public class MovingPlatform : InteractableObject {
             switch (_behavior) {
                 //Advance on a key press or other input
                 case BehaviorMode.AdvanceOnEvent:
-                    if (Input.GetKeyDown(KeyCode.Space)) {
+                    if (Input.GetKeyDown(KeyCode.Space) && !_doPathLoop && Vektor.getHandler().getEnergy() >= Vektor.getHandler().getEnergyRate()) {
                         _doPathLoop = true;
+                        Vektor.getHandler().setEnergy(Vektor.getHandler().getEnergy() - Vektor.getHandler().getEnergyRate());
                     }
                     break;
 
                 //Advance while a key is held
                 case BehaviorMode.AdvancedOnCondition:
-                    _canMove = Input.GetKey(KeyCode.Space);
+                    if (Input.GetKey(KeyCode.Space) && Vektor.getHandler().getEnergy() > 0) {
+                        _canMove = true;
+                        Vektor.getHandler().setEnergy((Vektor.getHandler().getEnergy() - (Vektor.getHandler().getEnergyRate() * Time.deltaTime)));
+                    }else if (_canMove) {
+                        _canMove = false;
+                    }
                     break;
             }
         }

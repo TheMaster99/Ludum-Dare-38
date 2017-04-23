@@ -13,6 +13,17 @@ public static class Vektor {
     public static float GetDampForce (float mass, float velocity, float stopDistance) {
         return (0.5f * mass * -velocity) / stopDistance;
     }
+
+
+    private static playerHandler _playerHandler;
+
+    public static void initHandler(playerHandler _player) {
+        _playerHandler = _player;
+    }
+
+    public static playerHandler getHandler() {
+        return _playerHandler;
+    }
 }
 
 //Interface for objects which depend on a switch, button, etc

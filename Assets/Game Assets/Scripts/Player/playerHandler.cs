@@ -7,16 +7,16 @@ public class playerHandler : MonoBehaviour {
     #region Unity Inspector
     [Header("Energy Config")]
     [SerializeField]
-    private int _maxEnergy;
+    private float _maxEnergy;
     [SerializeField]
     private bool _energyRecharge;
     [SerializeField]
-    private int _energyRate;
+    private float _energyRate;
     #endregion
 
     #region Private Members
     private GameObject _activeObject;
-    private int _energyLevel;
+    private float _energyLevel;
     private RaycastHit2D _hit;
     #endregion
 
@@ -26,18 +26,26 @@ public class playerHandler : MonoBehaviour {
         _energyLevel = _maxEnergy;
         _energyRecharge = false; // Energy does not recharge by default
         _energyRate = 5; // The rate that energy is used/recharged
+        Vektor.initHandler(this);
 	}
 
-    public void setEnergy(int _energy) {
+    public void setEnergy(float _energy) {
         _energyLevel = _energy;
     }
 
-    public int getEnergy() {
+    public float getEnergy() {
         return _energyLevel;
+    }
+
+    public float getEnergyRate() {
+        return _energyRate;
     }
 	
 	// Update is called once per frame
 	void Update () {
+
+        print("Energy: " + _energyLevel);
+        _energyLevel = Mathf.Clamp(_energyLevel, 0, 100);
 
         if (Input.GetMouseButtonDown(0)) {
             _hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
