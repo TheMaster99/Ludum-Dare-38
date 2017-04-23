@@ -39,10 +39,11 @@ public class playerHandler : MonoBehaviour {
             if (_hit.collider != null) {
                 if (_hit.transform.gameObject.tag == "Platform") {
                     _activeObject = _hit.transform.parent.gameObject; // If the player is clicking on a platform, select the platform's parent (the physical platform isn't the logical platform)
-                }else if (_hit.transform.gameObject.tag == "Barrier") { // for later
-
+                    print(_activeObject.transform.name);
+                } else if (_hit.transform.gameObject.tag == "Barrier") { // for later
+                    _activeObject = _hit.transform.gameObject; // If player clicks on barrier, select barrier
+                    print(_activeObject.transform.name);
                 }
-                print(_activeObject.transform.name);
             }
         }
 		
