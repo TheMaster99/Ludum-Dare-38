@@ -64,7 +64,7 @@ public class AutoPlayer : MonoBehaviour {
             _rayHit = Physics2D.Raycast(transform.FindChild("rayRight").position, _rayTargetRight, 0.25f);
         }
 
-        if (!_rayHit) { // No more floor!
+        if (!_rayHit || _rigidBody.velocity == Vector2.zero) { // No more floor!
             _moveDirection = !_moveDirection; // Turn around.
             _rigidBody.velocity = Vector2.zero;
         }

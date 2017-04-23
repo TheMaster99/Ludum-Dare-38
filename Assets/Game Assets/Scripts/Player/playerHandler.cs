@@ -54,7 +54,10 @@ public class playerHandler : MonoBehaviour {
                 if (_hit.transform.gameObject.tag == "Interactable") {
                     if (_activeObject != null)
                         _activeObject.BroadcastMessage("OnLoseFocus");
-                    _activeObject = _hit.transform.parent.gameObject; // If the player is clicking on a platform, select the platform's parent (the physical platform isn't the logical platform)
+                    if (_hit.transform.parent != null) // If the player is clicking on a platform, select the platform's parent (the physical platform isn't the logical platform)
+                        _activeObject = _hit.transform.parent.gameObject;
+                    else
+                        _activeObject = _hit.transform.gameObject;
                     _activeObject.BroadcastMessage("OnGetFocus");
                     print(_activeObject.transform.name);
                 }
