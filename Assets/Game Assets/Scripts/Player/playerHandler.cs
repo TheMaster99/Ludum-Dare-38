@@ -31,6 +31,8 @@ public class playerHandler : MonoBehaviour {
 
     public void setEnergy(float _energy) {
         _energyLevel = _energy;
+        _energyLevel = Mathf.Clamp(_energyLevel, 0, 100);
+        print("Energy: " + _energyLevel);
     }
 
     public float getEnergy() {
@@ -44,14 +46,11 @@ public class playerHandler : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 
-        print("Energy: " + _energyLevel);
-        _energyLevel = Mathf.Clamp(_energyLevel, 0, 100);
-
         if (Input.GetMouseButtonDown(0)) {
             _hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
             
             if (_hit.collider != null) {
-                if (_hit.transform.gameObject.tag == "Interactable") {
+                if (_hit.transform.gameObject.CompareTag("Interactable")) {
                     if (_activeObject != null)
                         _activeObject.BroadcastMessage("OnLoseFocus");
                     if (_hit.transform.parent != null) // If the player is clicking on a platform, select the platform's parent (the physical platform isn't the logical platform)
