@@ -6,7 +6,7 @@ using UnityEngine;
 /// Controls a platform which moves between a set of definied path nodes.
 /// -VektorKnight
 /// </summary>
-public class MovingPlatform : MonoBehaviour {
+public class MovingPlatform : InteractableObject {
 
     #region Unity Inspector
     [Header("Platform Config")]
@@ -47,7 +47,7 @@ public class MovingPlatform : MonoBehaviour {
     }
     #endregion
 
-    //Debugging Gizmos
+    #region Debugging Gizmos
     void OnDrawGizmos() {
         //Sanity Check
         if (_pathNodes.Count == 0) {
@@ -77,6 +77,7 @@ public class MovingPlatform : MonoBehaviour {
             Gizmos.DrawLine(transform.TransformPoint(_pathNodes[0]), transform.TransformPoint(_pathNodes[_pathNodes.Count - 1]));
         }
     }
+    #endregion
 
     //Initialization
     void Start () {
@@ -123,8 +124,36 @@ public class MovingPlatform : MonoBehaviour {
         StartCoroutine("PlatformLoop");
 	}
 
+    //Interaction: Get Focus
+    public override void OnGetFocus() {
+        Debug.Log(this.name + ":" + this.GetInstanceID().ToString() + " Now has focus");
+        base.OnGetFocus();
+    }
+
+    //Interaction: Lose Focus
+    public override void OnLoseFocus() {
+        Debug.Log(this.name + ":" + this.GetInstanceID().ToString() + " No longer has focus");
+        base.OnLoseFocus();
+    }
+
     //Per-Frame Update
-    void Update() {}
+    void Update() {
+        if (_hasFocus) {
+            switch (_behavior) {
+                //Advance on a key press or other input
+                case BehaviorMode.AdvanceOnEvent:
+                    if (Input.GetKeyDown(KeyCode.Space)) {
+                        _doPathLoop = true;
+                    }
+                    break;
+
+                //Advance while a key is held
+                case BehaviorMode.AdvancedOnCondition:
+                    _canMove = Input.GetKey(KeyCode.Space);
+                    break;
+            }
+        }
+    }
 
     //Coroutine
     private IEnumerator PlatformLoop () {
